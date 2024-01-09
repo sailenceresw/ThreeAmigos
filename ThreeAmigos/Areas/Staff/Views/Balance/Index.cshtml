@@ -1,0 +1,71 @@
+﻿
+
+<main id="main" class="main ">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <script>
+            // Display the success message as a popup alert
+            $(document).ready(function () {
+                alert('@TempData["SuccessMessage"]');
+            });
+        </script>
+    }
+
+    <div class="row ">
+        <div class="col-md-9">
+            <h3>Balance</h3>
+        </div>
+
+        <div class="col-md-3">
+            <a class="btn  float-end btn-primary" href="/Staff/Balance/CreateBal"><i class="bi bi-plus-circle"></i>&nbsp;Add Balance</a>
+
+        </div>
+
+    </div>
+
+    <table id="brandTable" class="table table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+
+
+                <th>Customer Name</th>
+                <th>Balance</th>
+                <th>Action</th>
+               
+
+
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+
+</main>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#brandTable').DataTable({
+                "ajax": {
+                    "url": "/Staff/Balance/GetBalance",
+                    "type": "GET",
+                    "datatype": "json"
+                },
+                "columns": [
+                    { "data": "fullName" },
+                    { "data": "balance" },
+                    {
+                        "render": function (data, type, row) {
+                            return '<a href="/Staff/Balance/Edit/' + row.id + '" class="btn btn-sm btn-secondary"><i class="bi bi-pencil"></i>&nbsp;Edit</a>';
+                        }
+                    }
+                   
+                   
+
+                ]
+            });
+        });
+    </script>
+}

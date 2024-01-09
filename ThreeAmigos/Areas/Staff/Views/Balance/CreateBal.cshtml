@@ -1,0 +1,68 @@
+﻿@model ThreeAmigos.Models.AccountBalances.AccountBalance
+
+
+<style>
+    .border1 {
+        border: 2px solid black;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 20px 0px;
+    }
+
+    legend {
+        background-color: lightgray;
+        width: auto;
+        padding: 5px 10px;
+        border-radius: 4px;
+        margin-top: -30px;
+        font-size: medium;
+        margin-left: 5%;
+        font-weight: bold;
+        font-family: arial;
+    }
+
+    .wor {
+        margin-top: 20px;
+    }
+</style>
+
+
+
+
+
+<main id="main" class="main ">
+
+
+         <form class="row wor g-3 g-3 needs-validation" novalidate asp-controller="Balance" asp-action="CreateBal" method="post" asp-area="Staff">
+
+        <div class="col-md-12 border1">
+            <legend>Product </legend>
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="inputName5" class="form-label">Customers</label>
+
+                        <select asp-for="CustomerID" name="CustomerID" class="form-select" asp-items="@ViewBag.UserList">
+                            <option value="">---  Select Customer  ---</option>
+                        </select>
+                       
+                     </div>
+
+                    <div class="col-md-6">
+                        <label for="inputState" class="form-label">Balance</label>
+                        <input type="text" class="form-control" asp-for="Balance">
+                        <div class="invalid-feedback">Please enter  Balance.</div>
+                    </div>
+                </div>
+            </div>
+
+ 
+
+        <div class="col-md-12 mt-3">
+            <div class="float-end">
+                <button type="submit" class="btn btn-primary float-right">Submit</button>
+            </div>
+        </div>
+    </form>
+</main>
+

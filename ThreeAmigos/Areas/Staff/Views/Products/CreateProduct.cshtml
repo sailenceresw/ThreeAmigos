@@ -1,0 +1,84 @@
+﻿@model ThreeAmigos.Models.Products.Product
+
+
+<style>
+    .border1 {
+        border: 2px solid black;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 20px 0px;
+    }
+
+    legend {
+        background-color: lightgray;
+        width: auto;
+        padding: 5px 10px;
+        border-radius: 4px;
+        margin-top: -30px;
+        font-size: medium;
+        margin-left: 5%;
+        font-weight: bold;
+        font-family: arial;
+    }
+
+    .wor {
+        margin-top: 20px;
+    }
+</style>
+
+
+
+
+
+<main id="main" class="main ">
+    
+
+    <form class="row wor g-3 g-3 needs-validation" novalidate asp-controller="Products" asp-action="Product" method="post" asp-area="Staff" enctype="multipart/form-data">
+        <div class="col-md-12 border1">
+            <legend>Product </legend>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="inputName5" class="form-label">Product Name</label>
+                        <input type="text" class="form-control" asp-for="Name">
+                    <div class="invalid-feedback">Please enter your Owner Name.</div>
+                </div>
+
+                    <div class="col-md-6">
+                        <label for="inputState" class="form-label">Price</label>
+                        <input type="text" class="form-control" asp-for="Price">
+                        <div class="invalid-feedback">Please enter your Price.</div>
+                    </div>
+            </div>
+        </div>
+        
+      
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="inputState" class="form-label">Description</label>
+                    <textarea class="form-control" style="height: 108px"   asp-for="Description"></textarea>
+                    <div class="invalid-feedback">Please enter your Description.</div>
+                </div>
+                <div class="col-md-6">
+                        <label for="inputState" class="form-label">Stock</label>
+                        <input type="text" class="form-control" asp-for="Stock" required>
+                    <div class="invalid-feedback">Please enter your Location.</div>
+                    <label for="inputState" class="form-label">Image</label>
+                        <input type="file" class="form-control" asp-for="ProducImageUrl" name="file">
+                        <div class="invalid-feedback">Please enter your ImageUrl.</div>
+                </div>
+            </div>
+        </div>
+         
+    </div>
+         
+        <div class="col-md-12">
+            <div class="float-end">
+                <button type="submit" class="btn btn-primary float-right">Submit</button>
+            </div>
+        </div>
+    </form>
+</main>
+
+ 

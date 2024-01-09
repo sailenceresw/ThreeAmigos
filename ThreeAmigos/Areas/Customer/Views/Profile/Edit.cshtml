@@ -1,0 +1,45 @@
+﻿@using ThreeAmigos.Areas.Identity.Data;
+@model ThreeAmigos.Areas.Identity.Data.ThreeAmigosUser;
+
+@{
+    ViewData["Title"] = "Edit User Data";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit User Data</h1>
+
+@if (Model != null)
+{
+    <form class="row wor g-3 g-3 needs-validation" novalidate asp-controller="Profile" asp-action="Edit" method="post" asp-area="Customer">
+
+        <input type="hidden" asp-for="Id" asp-items="@ViewBag.UserId" />
+
+        <div class="col-md-6">
+            <label for="inputName5" class="form-label">Full Name</label>
+            <input type="text" class="form-control" asp-for="FullName">
+            <span asp-validation-for="FullName"></span>
+        </div>
+        <div class="col-md-6">
+            <label for="inputName5" class="form-label">Payment Address</label>
+            <input type="text" class="form-control" asp-for="PaymentAddress">
+            <span asp-validation-for="PaymentAddress"></span>
+        </div>
+        <div class="col-md-6">
+            <label for="inputName5" class="form-label">Delivery Address</label>
+            <input type="text" class="form-control" asp-for="DeliveryAddress">
+            <span asp-validation-for="DeliveryAddress"></span>
+        </div>
+        <div class="col-md-6">
+            <label for="inputName5" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" asp-for="TelephoneNumber">
+            <span asp-validation-for="PhoneNumber"></span>
+        </div>
+        <!-- Repeat for other properties -->
+        <hr />
+        <button type="submit">Save Changes</button>
+    </form>
+}
+else
+{
+    <p>No user data found for editing.</p>
+}

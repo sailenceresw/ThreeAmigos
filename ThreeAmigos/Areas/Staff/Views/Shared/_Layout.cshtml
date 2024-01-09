@@ -1,0 +1,339 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ThreeAmigos Corps</title>
+
+    <!-- Favicons -->
+    <link href="~/assets/img/favicon.png" rel="icon">
+    <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="~/assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="~/assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="~/assets/vendor/simple-datatables/style.css" rel="stylesheet">
+
+    <!-- Template Main CSS File -->
+    <link href="~/assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/23.1.36/fluent.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.min.css" />
+
+    <script src="https://cdn.syncfusion.com/ej2/23.1.36/dist/ej2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+</head>
+<body>
+    <!-- ======= Header ======= -->
+    <header id="header" class="header fixed-top d-flex align-items-center">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="index.html" class="logo d-flex align-items-center">
+                <img src="assets/img/logo.png" alt="">
+                <span class="d-none d-lg-block">ThreeAmigos Corp</span>
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div><!-- End Logo -->
+
+        <div class="search-bar">
+            <form class="search-form d-flex align-items-center" method="POST" action="#">
+                <input type="text" name="query" placeholder="Search" title="Enter search keyword">
+                <button type="submit" title="Search"><i class="bi bi-search"></i></button>
+            </form>
+        </div><!-- End Search Bar -->
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+
+                <li class="nav-item d-block d-lg-none">
+                    <a class="nav-link nav-icon search-bar-toggle " href="#">
+                        <i class="bi bi-search"></i>
+                    </a>
+                </li><!-- End Search Icon-->
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-primary badge-number"></span>
+                    </a><!-- End Notification Icon -->
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
+                        <li class="dropdown-header">
+                            You have no new notifications
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+
+                    </ul><!-- End Notification Dropdown Items -->
+
+                </li><!-- End Notification Nav -->
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-chat-left-text"></i>
+                        <span class="badge bg-success badge-number"></span>
+                    </a><!-- End Messages Icon -->
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow messages">
+                        <li class="dropdown-header">
+                            You have no new messages
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+
+
+
+                    </ul><!-- End Messages Dropdown Items -->
+
+                </li><!-- End Messages Nav -->
+
+                <li class="nav-item dropdown pe-3">
+
+                    <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+                        <img src="~/assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+                        <span class="d-none d-md-block dropdown-toggle ps-2">Admin</span>
+                    </a><!-- End Profile Iamge Icon -->
+
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                        <li class="dropdown-header">
+                            <h6>Admin</h6>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" asp-area="" asp-controller="Profile" asp-action="ChangePassword">
+                                <i class="bi bi-person"></i>
+                                <span>My Profile</span>
+                            </a>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center" href="/Identity/Account/Login">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </li>
+
+                    </ul><!-- End Profile Dropdown Items -->
+                </li><!-- End Profile Nav -->
+
+            </ul>
+        </nav><!-- End Icons Navigation -->
+
+    </header><!-- End Header -->
+    <!-- ======= Sidebar ======= -->
+    <aside id="sidebar" class="sidebar">
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+
+            <li class="nav-item">
+                <a asp-area="Staff" asp-controller="Dashboard" asp-action="Index">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li><!-- End Dashboard Nav -->
+
+            <li class="nav-heading">Products</li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-menu-button-wide"></i><span>Products </span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a asp-area="Staff" asp-controller="Products" asp-action="Index">
+                            <i class="bi bi-circle"></i><span>Add/View Products  </span>
+                        </a>
+                    </li>
+
+                </ul>
+            </li><!-- End Components Nav -->
+            <li class="nav-heading">Customers</li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#Customer-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-menu-button-wide"></i><span> Customer</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="Customer-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a asp-area="Staff" asp-controller="Customers" asp-action="Index">
+                            <i class="bi bi-circle"></i><span>View Customers</span>
+                        </a>
+
+                    </li>
+
+                </ul>
+            </li><!-- End Components Nav -->
+
+
+            <li class="nav-heading">Customer Balance</li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#vv-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-menu-button-wide"></i><span> Customer Balanace</span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="vv-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a asp-area="Staff" asp-controller="Balance" asp-action="Index">
+                            <i class="bi bi-circle"></i><span>Add/View Balanace</span>
+                        </a>
+
+                    </li>
+
+                </ul>
+            </li><!-- End Components Nav -->
+
+
+
+            <li class="nav-heading">History</li>
+            <li class="nav-item">
+                <a class="nav-link collapsed" data-bs-target="#uu-nav" data-bs-toggle="collapse" href="#">
+                    <i class="bi bi-menu-button-wide"></i><span> Orders History  </span><i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <ul id="uu-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    <li>
+                        <a asp-area="Staff" asp-controller="OrderHistory" asp-action="Index">
+                            <i class="bi bi-circle"></i><span>View History</span>
+                        </a>
+
+                    </li>
+
+                </ul>
+            </li><!-- End Components Nav -->
+            @*   <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
+            <i class="bi bi-journal-text"></i><span>Forms</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+            <li>
+            <a asp-area="Admin" asp-controller="Lead" asp-action="LeadForm">
+            <i class="bi bi-circle"></i><span>Lead Form</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="Employee" asp-action="EmployeeRegister">
+            <i class="bi bi-circle"></i><span>Team Member</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="Lead" asp-action="AssignLeadToEmployee">
+            <i class="bi bi-circle"></i><span>Lead Allocation</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="Followup" asp-action="Index">
+            <i class="bi bi-circle"></i><span>Lead Management</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="InterestTag" asp-action="Index">
+            <i class="bi bi-circle"></i><span>Interested Tags</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="Brand" asp-action="Create">
+            <i class="bi bi-circle"></i><span>Brand/Project</span>
+            </a>
+            </li>
+
+            <li>
+            <a asp-area="Admin" asp-controller="ProductAndProductType" asp-action="Create">
+            <i class="bi bi-circle"></i><span>Product Type</span>
+            </a>
+            </li>
+
+
+            <li>
+            <a asp-area="Admin" asp-controller="ProductAndProductType" asp-action="Createproduct">
+            <i class="bi bi-circle"></i><span>Product </span>
+            </a>
+            </li>
+            <li>
+            <a asp-area="Admin" asp-controller="Referral" asp-action="Index">
+            <i class="bi bi-circle"></i><span>Referral </span>
+            </a>
+            </li>
+            </ul>
+            </li><!-- End Forms Nav -->
+            *@
+
+            @*
+            <li class="nav-heading">Reports</li>
+
+
+
+            <li class="nav-heading">Inventory</li>
+
+
+
+
+            <li class="nav-heading">Settings</li>
+            *@
+
+
+
+        </ul>
+
+    </aside><!-- End Sidebar-->
+    <!-- End Sidebar-->
+
+
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2023 - CRM - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <!-- Vendor JS Files -->
+    <script src="~/assets/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/assets/vendor/chart.js/chart.umd.js"></script>
+    <script src="~/assets/vendor/echarts/echarts.min.js"></script>
+    <script src="~/assets/vendor/quill/quill.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+    <script src="~/assets/vendor/simple-datatables/simple-datatables.js"></script>
+
+    <script src="~/assets/vendor/tinymce/tinymce.min.js"></script>
+    <script src="~/assets/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="~/assets/js/main.js" asp-append-version="true"></script>
+
+
+
+
+    @await RenderSectionAsync("Scripts", required: false)
+    <ejs-scripts></ejs-scripts>
+
+</body>
+</html>

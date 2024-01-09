@@ -1,0 +1,177 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using ThreeAmigos.Areas.Identity.Data;
+<!-- BREADCRUMB -->
+@model List<ThreeAmigos.Models.Products.Product>
+@inject ThreeAmigosContext dbContext;
+@inject UserManager<ThreeAmigosUser> UserManager
+
+@{
+
+	var user = await UserManager.GetUserAsync(User);
+	if (user != null)
+	{
+		ViewBag.FullName = user.FullName;
+		ViewBag.TelephoneNumber = user.TelephoneNumber;
+		ViewBag.DeliveryAddress = user.DeliveryAddress;
+	}
+}
+<br />
+<br />
+<br />
+
+<div id="breadcrumb" class="section mt-5">
+	<!-- container -->
+	<div class="container">
+		<!-- row -->
+		<div class="row">
+			<div class="col-md-12">
+				<h3 class="breadcrumb-header">Checkout</h3>
+				<ul class="breadcrumb-tree">
+					<li><a href="#">Home</a></li>
+					<li class="active">Checkout</li>
+				</ul>
+			</div>
+		</div>
+		<!-- /row -->
+	</div>
+	<!-- /container -->
+</div>
+<!-- /BREADCRUMB -->
+<!-- SECTION -->
+<div class="section">
+	<!-- container -->
+	<div class="container">
+		<!-- row -->
+		<div class="row">
+
+			<div class="col-md-7">
+				<!-- Billing Details -->
+				<div class="billing-details">
+					<div class="section-title">
+						<h3 class="title">Billing address</h3>
+					</div>
+
+					<div class="form-group">
+						<input class="form-control" type="text" id="fullName" value="@ViewBag.FullName" />
+					</div>
+				 
+					 
+					<div class="form-group">
+						<input class="form-control" type="text" id="deliveryAddress" value="@ViewBag.DeliveryAddress" />
+					</div>
+					 
+				 
+					<div class="form-group">
+						<input class="form-control" type="text" id="telephoneNumber" value="@ViewBag.TelephoneNumber" />
+					</div>
+					 
+				</div>
+				<!-- /Billing Details -->
+				<!-- Shiping Details -->
+				<div class="shiping-details">
+				 
+					<div class="input-checkbox">
+					 
+						<div class="caption">
+							<div class="form-group">
+								<input class="input" type="text" name="first-name" placeholder="First Name">
+							</div>
+							 
+							<div class="form-group">
+								<input class="input" type="email" name="email" placeholder="Email">
+							</div>
+							<div class="form-group">
+								<input class="input" type="text" name="address" placeholder="Address">
+							</div>
+						 
+							<div class="form-group">
+								<input class="input" type="tel" name="tel" placeholder="Telephone">
+							</div>
+						</div>
+					</div>
+				</div>
+			 
+			</div>
+
+			<!-- Order Details -->
+			<div class="col-md-5 order-details">
+				<div class="section-title text-center">
+					<h3 class="title">Your Order</h3>
+				</div>
+				<div class="order-summary">
+					<div class="order-col">
+						<div><strong>PRODUCT</strong></div>
+						<div><strong>TOTAL</strong></div>
+					</div>
+ 
+<div class="order-products">
+						@if (Model != null && Model.Count > 0)
+						{
+							decimal total = 0;
+						
+
+							@for (int i = 0; i < Model.Count; i++)
+							{
+								<div class="order-col" data-product-id="@Model[i].ProductId">
+									<div>@($"{i + 1}x {Model[i].Name}")</div>
+									<div>@($"{Model[i].Price:C}")</div>
+								</div>
+
+								// Assuming Price is stored as a string, convert it to decimal.
+								total += Model[i].Price; // Add the price directly, no need to parse
+
+							}
+
+							<div class="order-col">
+								<div><strong>TOTAL</strong></div>
+								<div><strong class="order-total">@($"{total:C}")</strong></div>
+							</div>
+
+							<input type="hidden" id="productIds" value="@string.Join(",", Model.Select(p => p.ProductId))" />
+
+							<div class="input-checkbox">
+								<input type="checkbox" id="terms">
+								<label for="terms">
+									<span></span>
+									I've read and accept the <a href="#">terms & conditions</a>
+								</label>
+							</div>
+							<a href="" class="primary-btn order-submit" id="placeOrderButton">Place order</a>
+						}
+						else
+						{
+							<p>No products in the cart.</p>
+						}
+
+					
+</div>
+
+
+
+ 				</div>
+			
+			</div>
+			<!-- /Order Details -->
+		</div>
+		<!-- /row -->
+	</div>
+	<!-- /container -->
+</div>
+<!-- /SECTION -->
+@section scripts {
+	<script>
+		$(document).ready(function () {
+			// Click event on "Place order" button
+			$("#placeOrderButton").on("click", function (e) {
+				e.preventDefault(); // Prevent default behavior of anchor tag
+
+				// Get the productIds from the hidden input field
+				var productIds = $("#productIds").val().split(",");
+
+				// Construct the URL with the productIds and navigate to it
+				var url = '/Customer/Order/PlaceOrder?productIds=' + productIds.join(",");
+				window.location.href = url;
+			});
+		});
+	</script>
+}
