@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/threeamigoes/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsThreeAmigosContextConne_FE342FB173",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/threeamigosdbserver/databases/ThreeAmigoes_Db",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:ThreeAmigosContextConnection"
+    }
+  }
+}
