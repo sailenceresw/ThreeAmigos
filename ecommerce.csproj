@@ -24,10 +24,6 @@
 
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="dotnet publish '../../src/ecommerce.csproj' -o $(OutputPath)/service"/>
-  </Target>
-
   <ItemGroup>
     <Folder Include="Migrations\" />
   </ItemGroup>
