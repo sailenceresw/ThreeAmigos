@@ -1,0 +1,59 @@
+﻿@model ecommerce.Models.Category
+
+@{
+    ViewData["Title"] = "Update";
+    Layout = "_DashbourdLayout";
+}
+
+<div class="container">
+
+    <div class=" text-center mt-5">
+        <h1>Update @Model.Name</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9 mt-3 p-3 mx-auto bg-light">
+            <form asp-action="Update" asp-controller="category" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label asp-for="Id" class="control-label">ID</label>
+                    <input asp-for="Id" disabled class="form-control" />
+                    <span asp-validation-for="Id" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Name" class="control-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Description" class="control-label"></label>
+                    <input asp-for="Description" class="form-control" />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="image" class="control-label">Image</label>
+                    <input type="file" asp-for="image" class="form-control" />
+                    <span asp-validation-for="image" class="text-danger"></span>
+                </div>
+
+                <div class="form-group text-center px me-2 mx-auto">
+                    <input type="submit" value="Update" class="btn btn-success mx-2 px-3 md-2" />
+                    <a asp-action="GetAll" class="btn btn-outline-danger mx-2 px-3 md-2">Cancel</a>
+                </div>
+                
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    .form-group {
+        margin-top: 20px;
+    }
+</style>

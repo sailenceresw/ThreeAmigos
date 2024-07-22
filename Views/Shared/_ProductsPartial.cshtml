@@ -1,0 +1,52 @@
+﻿@model ecommerce.ViewModels.Product.Products_With_CategoriesVM
+
+<!-- STORE -->
+<div id="store" class="col-md-9" style="margin-bottom:25px">
+	<!-- store top filter -->
+	<div class="store-filter clearfix">
+
+	</div>
+	<!-- /store top filter -->
+	<!-- store products -->
+	<div class="row">
+		@foreach (Product product in Model.Products)
+		{
+			<!-- product -->
+			<div class="col-md-4 col-xs-6 my-5" >
+				<div class="product">
+					<div class="product-img">
+						<a asp-action="Details" asp-controller="Product" asp-route-Id="@product.Id">
+							<img src="/img/@product.ImageUrl" alt="@product.Name" height="300" style="max-width: 100%;" width="auto">
+						</a>
+					</div>
+					<div class="product-body">
+						<a asp-action="Details" asp-controller="Category" asp-route-Id="@product.Id">
+							<p class="product-category">Category</p>
+						</a>
+						<a asp-action="Details" asp-controller="Product" asp-route-Id="@product.Id">
+							<h3 class="product-name">@product.Name</h3>
+						</a>
+						<h4 class="product-price">$ @product.Price</h4>
+						<div class="product-btns">
+							<a asp-action="Details" asp-controller="Product" asp-route-Id="@product.Id" class="quick-view btn"><i class="fa fa-eye"></i><span class="tooltipp"> quick view</span></a>
+						</div>
+					</div>
+					<div class="add-to-cart">
+						<a asp-action="AddToCart" asp-controller="Product" asp-route-id="@product.Id">
+							<button class="add-to-cart-btn" onclick="AddProduct()"><i class="fa fa-shopping-cart"></i> add to cart</button>
+						</a>
+					</div>
+				</div>
+			</div>
+			<!-- /product -->
+		}
+
+	</div>
+	<!-- /store products -->
+
+
+
+</div>
+<!-- /STORE -->
+
+	

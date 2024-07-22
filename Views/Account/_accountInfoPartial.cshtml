@@ -1,0 +1,97 @@
+﻿@model ecommerce.ViewModels.AccountInfoViewModel
+@* @using Newtonsoft.Json *@
+@{
+    Layout = null;
+}
+
+
+<div class="card">
+    <div class="card-header">
+        Account Info
+    </div>
+    <div class="card-body">
+        <form asp-action="editAccountInfo" asp-controller="Account" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form d-flex row flex-wrap">
+                <div class="form-group col-5 m-2 input-label-div">
+                    <label asp-for="Email" class="control-label"></label>
+                    <input asp-for="Email" disabled type="email" class="form-control" id="inputEmail4" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <input type="email" hidden value="@Model.Email" name="Email" /> 
+
+                <div class="form-group col-5 m-2 input-label-div">
+                    <label asp-for="userName" class="control-label"></label>
+                    <input asp-for="userName" type="text" class="form-control" id="inputEmail4">
+                    <span asp-validation-for="userName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group col-5 m-2 input-label-div">
+                    <label asp-for="phoneNumber" class="control-label"></label>
+                    <input asp-for="phoneNumber" type="number" class="form-control" id="inputEmail4">
+                    <span asp-validation-for="phoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <h3 class="mt-3">Address Details</h3>
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <label asp-for="Address" class="control-label"></label>
+                        <input asp-for="Address" type="text" class="form-control" id="Address">
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <label asp-for="City" class="control-label"></label>
+                        <input asp-for="City" type="text" class="form-control" id="inputEmail4">
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <label asp-for="Region" class="control-label"></label>
+                        <input asp-for="Region" type="text" class="form-control" id="inputEmail4">
+                        <span asp-validation-for="Region" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <label asp-for="PostalCode" class="control-label"></label>
+                        <input asp-for="PostalCode" type="text" class="form-control" id="inputEmail4">
+                        <span asp-validation-for="PostalCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <label asp-for="Country" class="control-label"></label>
+                        <input asp-for="Country" type="text" class="form-control" id="inputEmail4">
+                        <span asp-validation-for="Country" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <h3 class="mt-3">Balance</h3>
+                    <h5 class="mt-3">Available Balance: <span style="color: blue;">$@Model.Balance</span></h5>
+                
+                    <h5 class="mt-3">Add Balance</h5>
+                    <div class="form-group col-5 m-2 input-label-div">
+                        <input asp-for="Balance" value="0" type="number" class="form-control" id="Balance">
+                        <span asp-validation-for="Balance" class="text-danger"></span>
+                    </div>
+                </div>
+
+
+                <div class="row my-4">
+                    <button type="submit" class="btn btn-primary col-3 m-auto"> Update</button>
+                </div>
+            </div>
+        </form>
+        @if (!Model.RequestDelete)
+        {
+            <form asp-action="RequestDeleteAccount" asp-controller="Account" method="get" class="text-center">
+                <button type="submit" class="btn btn-danger m-auto">Request Delete Account</button>
+            </form>
+        } 
+        else 
+        {
+            <p class="text-center text-danger">Account Deletion in Progress</p>
+        }
+    </div>
+</div>

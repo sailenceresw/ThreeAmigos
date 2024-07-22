@@ -1,0 +1,67 @@
+﻿@model ecommerce.ViewModel.LoginViewModel
+
+
+<style>
+    .input-label-div {
+        margin: 5px
+    }
+</style>
+
+@* <section style="height: 100vh;" class="d-flex align-items-center"> *@
+<div class="container box">
+    <div class="d-flex  flex-row bg-white  w-75 m-auto shadow rounded-5 ">
+
+
+        <br />
+        <div class="col my-4 py-5">
+            <div class="row ">
+                <div class="d-flex flex-column align-items-center my-4">
+                    <h1 class="text-center my-3">Welcome Back</h1>
+                </div>
+
+
+                <div class="col-md-10">
+
+                    <form asp-action="login" asp-controller="Account" method="post" class="offset-1 row">
+
+
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="form-group input-label-div">
+                            <label asp-for="userName" class="control-label"></label>
+                            <input asp-for="userName" class="form-control" />
+                            <span asp-validation-for="userName" class="text-danger"></span>
+                        </div>
+
+
+                        <div class="form-group input-label-div">
+                            <label asp-for="password" class="control-label"></label>
+                            <input asp-for="password" class="form-control" />
+                            <span asp-validation-for="password" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group input-label-div justify-content-start d-inline"
+                            style="margin-top: 24px;">
+                            <input type="submit" value="Login" class="btn btn-primary" />
+                        </div>
+
+
+                        <div class="row justify-content-center d-inline py-5" style="margin-top: 24px; margin-left: 4px;">
+                            <a href="/account/register" class="col-4" style="color: blue; text-decoration: underline;">Create your account</a>
+                        </div>
+                    </form>
+                </div>
+
+
+
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+
+
+
+@* </section> *@
+<partial name="_ValidationScriptsPartial"></partial>
