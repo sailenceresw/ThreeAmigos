@@ -25,8 +25,8 @@ There is no test project in this repository — no `dotnet test` target exists.
 
 ### EF Core migrations
 
-`dotnet-ef` is pinned as a local tool in `.config/dotnet-tools.json` (v8.0.6).
-Restore it before use:
+`dotnet-ef` is pinned as a local tool in `.config/dotnet-tools.json` (v8.0.27,
+kept in lockstep with the EF Core runtime packages). Restore it before use:
 
 ```bash
 dotnet tool restore
