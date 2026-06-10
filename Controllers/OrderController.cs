@@ -260,113 +260,77 @@ namespace ecommerce.Controllers
             ViewData["AllProductsNames"] = productService.GetAll().Select(c => c.Name).ToList();
 
 			var user = await userManager.GetUserAsync(User);
-
-			if (ModelState.IsValid)
+			if (user == null)
 			{
-				var order = HttpContext.Session.Get("order");
-				Order orderDesrialized = JsonSerializer.Deserialize<Order>(order);
-
-				decimal totalPrice = 0;
-
-				foreach (OrderItem item in orderDesrialized.OrderItems)
-				{
-					Product prod = productService.Get(item.ProductId);
-					totalPrice += item.Quantity * prod.Price;
-
-					if (prod.Quantity < item.Quantity)
-					{
-						return Json("Insufficient Quantity for " + prod.Name);
-					}
-				}
-
-				if(user == null ||totalPrice > user.Balance) {
-					return Json("Insufficient Balance");
-				}
-
-				Order o = new Order()
-				{
-					OrderDate = orderDesrialized.OrderDate,
-					ApplicationUserId = orderDesrialized.ApplicationUserId,
-					Status = "PENDING"
-				};
-				shipmentService.Save();
-
-				orderService.Insert(o);
-				
-				foreach (OrderItem item in orderDesrialized.OrderItems)
-				{
-					item.OrderId = o.Id;
-					Product prod = productService.Get(item.ProductId);
-
-					_context.Stock.Add(new Stock()
-					{
-						ProductId = prod.Id,
-						Quantity = -item.Quantity
-					});
-
-					prod.Quantity -= item.Quantity;
-
-					productService.Update(prod);
-					productService.Save();
-
-					_context.OrderItem.Add(new OrderItem() {
-						Quantity = item.Quantity,
-						OrderId = o.Id,
-						ProductId = item.ProductId,
-						Price = prod.Price
-					});
-				}
-
-				o.TotalValue = totalPrice;
-
-				_context.Order.Update(o);
-
-				user.Balance -= totalPrice;
-				await userManager.UpdateAsync(user);
-
-				_context.Statement.Add(new Statement() {
-					UserId = user.Id,
-					Amount = -totalPrice
-				});
-
-				checkoutVM.OrderId = o.Id;
-				checkoutVM.Date = DateTime.Now.AddDays(3);
-
-				Shipment shipment = new Shipment()
-				{
-					Id = checkoutVM.Id,
-					Address = checkoutVM.Address,
-					City = checkoutVM.City,
-					Region = checkoutVM.Region,
-					PostalCode = checkoutVM.PostalCode,
-					Country = checkoutVM.Country,
-					Order = checkoutVM.Order,
-					OrderId = checkoutVM.OrderId,
-					User = checkoutVM.User,
-					UserId = checkoutVM.UserId,
-
-					Date = checkoutVM.Date,
-				};
-				shipmentService.Insert(shipment);
-				shipmentService.Save();
-
-				o.ShipmentId = shipment.Id;
-				orderService.Save();
-				checkoutVM.Order = null;
-
-				_context.SaveChanges();
-
-				// Send Email
-				var emailService = new EmailService(_configuration);
-				var emailMessage = BuildOrderEmailMessage(o, orderDesrialized.OrderItems);
-				await emailService.SendEmailAsync(user.Email, "Order Confirmation", emailMessage);
-
-				return View("PlaceOrder");
+				return Challenge();
 			}
-			string? userid = HttpContext.Session.GetString("uId");
-			int? cartid = HttpContext.Session.GetInt32("cId");
 
-			return RedirectToAction("checkout", new { CartId = cartid, UserId = userid });
+			if (!ModelState.IsValid)
+			{
+				string? userid = HttpContext.Session.GetString("uId");
+				int? cartid = HttpContext.Session.GetInt32("cId");
+				return RedirectToAction("checkout", new { CartId = cartid, UserId = userid });
+			}
+
+			var orderJson = HttpContext.Session.GetString("order");
+			if (string.IsNullOrEmpty(orderJson))
+			{
+				return RedirectToAction("Index", "Home");
+			}
+			Order orderDeserialized = JsonSerializer.Deserialize<Order>(orderJson)!;
+
+			decimal totalPrice = 0m;
+			foreach (OrderItem item in orderDeserialized.OrderItems!)
+			{
+				Product prod = productService.Get(item.ProductId);
+				totalPrice += item.Quantity * prod.Price;
+
+				if (prod.Quantity < item.Quantity)
+				{
+					return Json("Insufficient Quantity for " + prod.Name);
+				}
+			}
+
+			Order o = new Order
+			{
+				OrderDate = orderDeserialized.OrderDate,
+				ApplicationUserId = orderDeserialized.ApplicationUserId,
+				Status = "AWAITING_PAYMENT",
+				TotalValue = totalPrice,
+			};
+			orderService.Insert(o);
+
+			foreach (OrderItem item in orderDeserialized.OrderItems!)
+			{
+				Product prod = productService.Get(item.ProductId);
+				_context.OrderItem.Add(new OrderItem
+				{
+					Quantity = item.Quantity,
+					OrderId = o.Id,
+					ProductId = item.ProductId,
+					Price = prod.Price,
+				});
+			}
+
+			Shipment shipment = new Shipment
+			{
+				Address = checkoutVM.Address,
+				City = checkoutVM.City,
+				Region = checkoutVM.Region,
+				PostalCode = checkoutVM.PostalCode,
+				Country = checkoutVM.Country,
+				OrderId = o.Id,
+				UserId = user.Id,
+				Date = checkoutVM.Date ?? DateTime.Now.AddDays(3),
+			};
+			shipmentService.Insert(shipment);
+			shipmentService.Save();
+
+			o.ShipmentId = shipment.Id;
+			_context.Order.Update(o);
+			_context.SaveChanges();
+
+			return RedirectToAction("Select", "Payment", new { orderId = o.Id });
 		}
 
 		private string BuildOrderEmailMessage(Order order, List<OrderItem> orderItems)

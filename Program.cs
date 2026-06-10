@@ -3,6 +3,7 @@ using ecommerce.Models;
 using ecommerce.Repository;
 using ecommerce.Seeders;
 using ecommerce.Services;
+using ecommerce.Services.Payments;
 using ecommerce.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -90,6 +91,14 @@ namespace ecommerce
                 (builder.Configuration.GetSection("MailSettings"));
 
             builder.Services.AddTransient<IMailService, MailService>();
+
+            // Payments
+            builder.Services.Configure<PaymentOptions>(
+                builder.Configuration.GetSection(PaymentOptions.SectionName));
+            builder.Services.AddScoped<IPaymentProvider, InAppBalancePaymentProvider>();
+            builder.Services.AddScoped<IPaymentProvider, StripePaymentProvider>();
+            builder.Services.AddScoped<IPaymentProvider, CryptoManualPaymentProvider>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
             
             builder.Services.AddSession();
 

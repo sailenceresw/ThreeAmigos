@@ -33,6 +33,12 @@ namespace ecommerce.Models
 
         public string? Status {get; set;} = "PENDING";
 
+        [ForeignKey("Payment")]
+        public int? PaymentId { get; set; }
+        public Payment? Payment { get; set; }
+
+        public PaymentMethod? PaymentMethod { get; set; }
+
         // Omar : New Update
     }
 }

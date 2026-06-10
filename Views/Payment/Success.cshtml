@@ -1,0 +1,23 @@
+@model ecommerce.Models.Payment
+@{
+    ViewData["Title"] = "Payment received";
+    Layout = "~/Views/Shared/_CheckoutLayout.cshtml";
+}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h3>Payment received</h3>
+                @if (Model.Status == ecommerce.Models.PaymentStatus.Succeeded)
+                {
+                    <p>Your order #@Model.OrderId is confirmed. A confirmation email is on the way.</p>
+                }
+                else
+                {
+                    <p>Status: <strong>@Model.Status</strong>. If you paid by card, processing may take a few seconds &mdash; refresh in a moment.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

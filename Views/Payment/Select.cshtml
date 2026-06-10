@@ -1,0 +1,65 @@
+@model ecommerce.ViewModels.Payment.SelectPaymentMethodViewModel
+@{
+    ViewData["Title"] = "Choose payment method";
+    Layout = "~/Views/Shared/_CheckoutLayout.cshtml";
+}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="section-title">
+                    <h3 class="title">Choose how to pay</h3>
+                </div>
+
+                @if (TempData["PaymentError"] is string err)
+                {
+                    <div class="alert alert-danger">@err</div>
+                }
+
+                <p>Order #@Model.OrderId &mdash; total <strong>$@Model.AmountUsd</strong></p>
+
+                <form asp-action="Begin" method="post">
+                    <input type="hidden" name="orderId" value="@Model.OrderId" />
+
+                    <div class="form-group">
+                        <label class="d-block">
+                            <input type="radio" name="method" value="@((int)ecommerce.Models.PaymentMethod.InAppBalance)" checked />
+                            In-app balance (current: $@Model.UserBalance)
+                        </label>
+
+                        @if (Model.StripeEnabled)
+                        {
+                            <label class="d-block">
+                                <input type="radio" name="method" value="@((int)ecommerce.Models.PaymentMethod.StripeCard)" />
+                                Credit / debit card (Stripe)
+                            </label>
+                        }
+
+                        @if (Model.CryptoEnabled)
+                        {
+                            <label class="d-block">
+                                <input type="radio" name="method" value="@((int)ecommerce.Models.PaymentMethod.CryptoManual)" />
+                                Cryptocurrency (manual reconciliation)
+                            </label>
+
+                            <div class="form-group mt-2" id="cryptoCurrencyWrap">
+                                <label>Currency</label>
+                                <select name="cryptoCurrency" class="form-control">
+                                    @foreach (var w in Model.CryptoWallets)
+                                    {
+                                        <option value="@w.Currency">@(w.Label ?? $"{w.Currency} ({w.Network})")</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <button type="submit" class="primary-btn">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

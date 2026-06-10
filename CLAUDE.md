@@ -73,6 +73,30 @@ Controller  ->  I<Entity>Service / <Entity>Service  ->  I<Entity>Repository / <E
   product price +10% for items sold the previous day, stock-status refresh, and
   product-visibility dedup (lowest-priced product in a same-name group becomes
   `IsParent`).
+- **Services/Payments/** — Pluggable payment subsystem. `IPaymentProvider` has
+  three implementations (`InAppBalance`, `StripeCard`, `CryptoManual`) registered
+  as a multi-binding (`AddScoped<IPaymentProvider, …>` ×3, resolved by `Method`
+  property). `IPaymentService` (`PaymentService`) owns the order-finalize logic
+  (stock decrement, statement entry for in-app-balance, status transition,
+  confirmation email) and is the only thing allowed to mark a `Payment` as
+  Succeeded/Failed. `PaymentController` exposes `Select/Begin`, the Stripe
+  webhook (signature-verified, idempotent via `PaymentEvent` unique index on
+  `Source+ExternalEventId`), `SubmitCryptoTx`, and admin Confirm/Reject endpoints
+  for manual crypto reconciliation.
+
+### Checkout / payment flow
+
+`OrderController.checkout` POST no longer debits balance or decrements stock
+inline. It now creates the `Order` in `Status="AWAITING_PAYMENT"`, snapshots
+`OrderItem` prices, creates the `Shipment`, and redirects to
+`Payment/Select?orderId=…`. The payment provider chosen there debits / charges
+through `IPaymentProvider.InitiateAsync`; finalization runs in
+`PaymentService.MarkSucceededAsync` (called inline for in-app balance, via
+Stripe webhook for cards, via the admin confirm endpoint for crypto).
+
+Known limitation: stock is **not reserved** between `AWAITING_PAYMENT` order
+creation and payment-success finalization. Concurrent checkouts of the
+last-in-stock item can oversell. Add reservation if this matters.
 
 ### Dependency injection
 
@@ -100,6 +124,32 @@ without reason. Email confirmation (`RequireConfirmedAccount`) is commented out.
   this split when touching email; prefer aligning rather than adding a third path.
 - **`RoleSeeder.SeedRoles` is never called** from `Program.cs` — the "Admin"
   role is not auto-seeded at startup despite the seeder existing.
+- **Payment secrets must not live in `appsettings.json`.** The `Payments`
+  section there is placeholders only (`Enabled: false`, empty keys). Real
+  Stripe keys / crypto wallet addresses go in user-secrets or environment
+  variables and override the section at runtime:
+
+  ```bash
+  dotnet user-secrets init
+  dotnet user-secrets set "Payments:Stripe:Enabled" "true"
+  dotnet user-secrets set "Payments:Stripe:PublishableKey" "pk_test_..."
+  dotnet user-secrets set "Payments:Stripe:SecretKey"      "sk_test_..."
+  dotnet user-secrets set "Payments:Stripe:WebhookSecret"  "whsec_..."
+  dotnet user-secrets set "Payments:Crypto:Enabled" "true"
+  # Crypto wallets are an array — use Payments:Crypto:Wallets:0:Currency etc.
+  ```
+
+  In Azure / production, set the same keys as App Service configuration. The
+  Stripe webhook lives at `POST /Payment/StripeWebhook` and is
+  `[AllowAnonymous]` + signature-verified.
+- **The `Payment` + `PaymentEvent` tables require an EF migration.** After
+  pulling these changes:
+
+  ```bash
+  dotnet tool restore
+  dotnet dotnet-ef migrations add AddPayments
+  dotnet dotnet-ef database update
+  ```
 
 ## Deployment
 

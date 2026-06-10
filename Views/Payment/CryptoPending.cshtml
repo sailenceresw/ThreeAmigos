@@ -1,0 +1,19 @@
+@model ecommerce.Models.Payment
+@{
+    ViewData["Title"] = "Awaiting confirmation";
+    Layout = "~/Views/Shared/_CheckoutLayout.cshtml";
+}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h3>Thanks &mdash; awaiting confirmation</h3>
+                <p>We received your transaction hash:</p>
+                <p><code>@Model.CryptoTxHash</code></p>
+                <p>An admin will verify on-chain and confirm your order. You will get an email once confirmed.</p>
+                <p>Order #@Model.OrderId &mdash; $@Model.AmountUsd in @Model.CryptoCurrency on @Model.CryptoNetwork.</p>
+            </div>
+        </div>
+    </div>
+</div>

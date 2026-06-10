@@ -16,6 +16,8 @@ namespace ecommerce.Models
         public DbSet<Shipment> Shipment { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<Payment> Payment { get; set; }
+        public DbSet<PaymentEvent> PaymentEvent { get; set; }
 
         public Context() : base() { }
 
@@ -51,6 +53,22 @@ namespace ecommerce.Models
             {
                 entity.Property(e => e.Amount)
                     .HasPrecision(18, 2);
+            });
+            builder.Entity<Payment>(entity =>
+            {
+                entity.Property(e => e.AmountUsd).HasPrecision(18, 2);
+                entity.Property(e => e.Method).HasConversion<int>();
+                entity.Property(e => e.Status).HasConversion<int>();
+                entity.HasIndex(e => e.OrderId);
+                entity.HasIndex(e => e.ProviderReference);
+            });
+            builder.Entity<PaymentEvent>(entity =>
+            {
+                entity.HasIndex(e => new { e.Source, e.ExternalEventId }).IsUnique();
+            });
+            builder.Entity<Order>(entity =>
+            {
+                entity.Property(e => e.PaymentMethod).HasConversion<int?>();
             });
         }
     }

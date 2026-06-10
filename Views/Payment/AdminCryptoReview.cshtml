@@ -1,0 +1,56 @@
+@model ecommerce.ViewModels.Payment.AdminCryptoReviewViewModel
+@{
+    ViewData["Title"] = "Pending crypto payments";
+    Layout = "_DashbourdLayout";
+}
+
+<div class="container-fluid mt-3">
+    <h3>Pending crypto payments</h3>
+
+    @if (Model.Pending.Count == 0)
+    {
+        <p>No payments awaiting confirmation.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Payment</th>
+                    <th>Order</th>
+                    <th>Amount (USD)</th>
+                    <th>Currency</th>
+                    <th>Network</th>
+                    <th>Tx hash</th>
+                    <th>Submitted</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Pending)
+                {
+                    <tr>
+                        <td>#@p.Id</td>
+                        <td>#@p.OrderId</td>
+                        <td>$@p.AmountUsd</td>
+                        <td>@p.CryptoCurrency</td>
+                        <td>@p.CryptoNetwork</td>
+                        <td><code>@p.CryptoTxHash</code></td>
+                        <td>@(p.UpdatedAt ?? p.CreatedAt)</td>
+                        <td>
+                            <form asp-action="AdminConfirmCrypto" method="post" class="d-inline">
+                                <input type="hidden" name="paymentId" value="@p.Id" />
+                                <button class="btn btn-success btn-sm" type="submit">Confirm</button>
+                            </form>
+                            <form asp-action="AdminRejectCrypto" method="post" class="d-inline">
+                                <input type="hidden" name="paymentId" value="@p.Id" />
+                                <input type="text" name="reason" class="form-control form-control-sm d-inline" style="width:140px" placeholder="reason" />
+                                <button class="btn btn-danger btn-sm" type="submit">Reject</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,0 +1,51 @@
+@model ecommerce.ViewModels.Payment.StripeCheckoutViewModel
+@{
+    ViewData["Title"] = "Pay with card";
+    Layout = "~/Views/Shared/_CheckoutLayout.cshtml";
+}
+
+<div class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <div class="section-title"><h3 class="title">Card payment</h3></div>
+                <p>Order #@Model.OrderId &mdash; <strong>$@Model.AmountUsd</strong></p>
+
+                <form id="payment-form">
+                    <div id="payment-element"></div>
+                    <button id="submit" class="primary-btn mt-3" type="submit">Pay now</button>
+                    <div id="payment-message" class="text-danger mt-2"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        (async function () {
+            const stripe = Stripe(@Html.Raw(Json.Serialize(Model.PublishableKey)));
+            const clientSecret = @Html.Raw(Json.Serialize(Model.ClientSecret));
+            const elements = stripe.elements({ clientSecret });
+            const paymentElement = elements.create('payment');
+            paymentElement.mount('#payment-element');
+
+            const form = document.getElementById('payment-form');
+            const message = document.getElementById('payment-message');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const { error } = await stripe.confirmPayment({
+                    elements,
+                    confirmParams: {
+                        return_url: @Html.Raw(Json.Serialize(Url.Action("Success", "Payment", new { paymentId = Model.PaymentId }, Context.Request.Scheme)!)),
+                    },
+                });
+                if (error) {
+                    message.textContent = error.message;
+                }
+            });
+        })();
+    </script>
+}
