@@ -70,5 +70,36 @@ namespace ecommerce.Services.Payments
                 FinalizedImmediately = false,
             };
         }
+
+        public async Task<RefundResult> RefundAsync(Payment payment, string reason, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(payment.ProviderReference))
+            {
+                throw new InvalidOperationException("Payment has no Stripe PaymentIntent reference; cannot refund.");
+            }
+            if (string.IsNullOrWhiteSpace(_options.SecretKey))
+            {
+                throw new InvalidOperationException("Stripe SecretKey is not configured.");
+            }
+
+            StripeConfiguration.ApiKey = _options.SecretKey;
+
+            var refundOptions = new RefundCreateOptions
+            {
+                PaymentIntent = payment.ProviderReference,
+                Metadata = new Dictionary<string, string>
+                {
+                    ["paymentId"] = payment.Id.ToString(),
+                    ["reason"] = reason ?? "",
+                },
+            };
+            var service = new RefundService();
+            var refund = await service.CreateAsync(refundOptions, cancellationToken: ct);
+
+            return new RefundResult
+            {
+                ProviderRefundReference = refund.Id,
+            };
+        }
     }
 }

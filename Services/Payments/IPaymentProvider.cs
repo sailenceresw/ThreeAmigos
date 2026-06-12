@@ -7,5 +7,7 @@ namespace ecommerce.Services.Payments
         PaymentMethod Method { get; }
 
         Task<PaymentInitResult> InitiateAsync(Order order, decimal amountUsd, ApplicationUser user, IDictionary<string, string?>? providerArgs, CancellationToken ct);
+
+        Task<RefundResult> RefundAsync(Payment payment, string reason, CancellationToken ct);
     }
 }

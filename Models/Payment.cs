@@ -32,5 +32,10 @@ namespace ecommerce.Models
         public DateTime? ConfirmedAt { get; set; }
 
         public string? ConfirmedByUserId { get; set; }
+
+        public DateTime? RefundedAt { get; set; }
+        public string? RefundedByUserId { get; set; }
+        public string? RefundReason { get; set; }
+        public string? RefundProviderReference { get; set; }
     }
 }

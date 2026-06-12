@@ -76,13 +76,28 @@ Controller  ->  I<Entity>Service / <Entity>Service  ->  I<Entity>Repository / <E
 - **Services/Payments/** — Pluggable payment subsystem. `IPaymentProvider` has
   three implementations (`InAppBalance`, `StripeCard`, `CryptoManual`) registered
   as a multi-binding (`AddScoped<IPaymentProvider, …>` ×3, resolved by `Method`
-  property). `IPaymentService` (`PaymentService`) owns the order-finalize logic
-  (stock decrement, statement entry for in-app-balance, status transition,
-  confirmation email) and is the only thing allowed to mark a `Payment` as
-  Succeeded/Failed. `PaymentController` exposes `Select/Begin`, the Stripe
-  webhook (signature-verified, idempotent via `PaymentEvent` unique index on
-  `Source+ExternalEventId`), `SubmitCryptoTx`, and admin Confirm/Reject endpoints
-  for manual crypto reconciliation.
+  property). `IPaymentService` (`PaymentService`) owns the order-finalize and
+  refund logic (stock decrement/restock, statement entry for in-app-balance,
+  status transition, confirmation/refund email) and is the only thing allowed to
+  mark a `Payment` as Succeeded/Failed/Refunded. `PaymentController` exposes
+  `Select/Begin`, the Stripe webhook (signature-verified, idempotent via
+  `PaymentEvent` unique index on `Source+ExternalEventId`), `SubmitCryptoTx`,
+  manual-crypto Confirm/Reject endpoints, and an admin payments view with a
+  Refund action that calls Stripe's Refunds API (or credits back the in-app
+  balance, or records intent for manual crypto refunds).
+
+### Refunds
+
+`PaymentService.RefundAsync(paymentId, reason, adminUserId)` only operates on
+`Succeeded` payments. It calls `IPaymentProvider.RefundAsync` (which is a no-op
+for in-app balance, calls Stripe's `RefundService` for cards, and just signals
+"requires manual settlement" for crypto), then in a single DB transaction:
+restocks the order's items, credits the in-app balance back (with a positive
+`Statement`) for `InAppBalance` payments, sets `Order.Status="REFUNDED"`, and
+stamps `Payment.Refunded*` fields. The Stripe webhook also handles
+`charge.refunded` / `charge.refund.updated` so out-of-band refunds initiated
+from the Stripe Dashboard reconcile through `MarkRefundedFromExternalAsync`
+(same domain effects, no second Stripe API call).
 
 ### Checkout / payment flow
 
@@ -142,14 +157,19 @@ without reason. Email confirmation (`RequireConfirmedAccount`) is commented out.
   In Azure / production, set the same keys as App Service configuration. The
   Stripe webhook lives at `POST /Payment/StripeWebhook` and is
   `[AllowAnonymous]` + signature-verified.
-- **The `Payment` + `PaymentEvent` tables require an EF migration.** After
-  pulling these changes:
+- **The `Payment` + `PaymentEvent` tables require an EF migration.** `Payment`
+  also carries refund-tracking columns (`RefundedAt`, `RefundedByUserId`,
+  `RefundReason`, `RefundProviderReference`). After pulling:
 
   ```bash
   dotnet tool restore
   dotnet dotnet-ef migrations add AddPayments
   dotnet dotnet-ef database update
   ```
+
+  If you've already generated/applied `AddPayments` before the refund columns
+  were added, run a second migration: `dotnet dotnet-ef migrations add
+  AddPaymentRefunds && dotnet dotnet-ef database update`.
 
 ## Deployment
 

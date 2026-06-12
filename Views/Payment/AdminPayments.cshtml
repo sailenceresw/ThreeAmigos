@@ -1,0 +1,55 @@
+@model ecommerce.ViewModels.Payment.AdminPaymentsViewModel
+@{
+    ViewData["Title"] = "Payments";
+    Layout = "_DashbourdLayout";
+}
+
+<div class="container-fluid mt-3">
+    <h3>Recent succeeded payments</h3>
+
+    @if (TempData["RefundError"] is string err)
+    {
+        <div class="alert alert-danger">@err</div>
+    }
+
+    @if (Model.Recent.Count == 0)
+    {
+        <p>No succeeded payments yet.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Payment</th>
+                    <th>Order</th>
+                    <th>Method</th>
+                    <th>Amount (USD)</th>
+                    <th>Provider ref</th>
+                    <th>Confirmed</th>
+                    <th>Refund</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Recent)
+                {
+                    <tr>
+                        <td>#@p.Id</td>
+                        <td>#@p.OrderId</td>
+                        <td>@p.Method</td>
+                        <td>$@p.AmountUsd</td>
+                        <td><code>@p.ProviderReference</code></td>
+                        <td>@(p.ConfirmedAt ?? p.CreatedAt)</td>
+                        <td>
+                            <form asp-action="AdminRefund" method="post" class="d-flex" onsubmit="return confirm('Refund payment #@p.Id for $@p.AmountUsd?');">
+                                <input type="hidden" name="paymentId" value="@p.Id" />
+                                <input type="text" name="reason" class="form-control form-control-sm" style="width:180px" placeholder="reason" />
+                                <button class="btn btn-warning btn-sm ms-2" type="submit">Refund</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

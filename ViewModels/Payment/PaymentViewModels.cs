@@ -51,4 +51,9 @@ namespace ecommerce.ViewModels.Payment
     {
         public List<Models.Payment> Pending { get; set; } = new();
     }
+
+    public class AdminPaymentsViewModel
+    {
+        public List<Models.Payment> Recent { get; set; } = new();
+    }
 }

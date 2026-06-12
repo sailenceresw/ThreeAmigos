@@ -196,9 +196,56 @@ namespace ecommerce.Controllers
                         await _payments.MarkFailedAsync(failedId, stripeEvent.Type, ct);
                     }
                     break;
+                case "charge.refunded":
+                case "charge.refund.updated":
+                    if (stripeEvent.Data.Object is Charge charge
+                        && !string.IsNullOrWhiteSpace(charge.PaymentIntentId))
+                    {
+                        var payment = await _payments.GetByProviderReferenceAsync(charge.PaymentIntentId, ct);
+                        if (payment != null && payment.Status == PaymentStatus.Succeeded)
+                        {
+                            var refundId = charge.Refunds?.Data?.LastOrDefault()?.Id;
+                            await _payments.MarkRefundedFromExternalAsync(
+                                payment.Id,
+                                providerRefundReference: refundId,
+                                reason: "Refunded via Stripe (out-of-band)",
+                                ct: ct);
+                        }
+                    }
+                    break;
             }
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminPayments(CancellationToken ct)
+        {
+            var recent = await _payments.ListRecentSucceededAsync(50, ct);
+            return View(new AdminPaymentsViewModel { Recent = recent });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminRefund(int paymentId, string reason, CancellationToken ct)
+        {
+            var admin = await _userManager.GetUserAsync(User);
+            try
+            {
+                await _payments.RefundAsync(paymentId, reason ?? "Refunded by admin", admin?.Id, ct);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["RefundError"] = ex.Message;
+            }
+            catch (Stripe.StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe refund failed for payment {PaymentId}", paymentId);
+                TempData["RefundError"] = "Stripe refund failed: " + ex.Message;
+            }
+            return RedirectToAction(nameof(AdminPayments));
         }
 
         [HttpGet]

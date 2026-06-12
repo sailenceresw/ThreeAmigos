@@ -85,6 +85,13 @@ namespace ecommerce.Services.Payments
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync(ct);
 
+        public Task<List<Payment>> ListRecentSucceededAsync(int take, CancellationToken ct)
+            => _context.Payment
+                .Where(p => p.Status == PaymentStatus.Succeeded)
+                .OrderByDescending(p => p.ConfirmedAt ?? p.CreatedAt)
+                .Take(take)
+                .ToListAsync(ct);
+
         public async Task AttachCryptoTxAsync(int paymentId, string txHash, CancellationToken ct)
         {
             var payment = await _context.Payment.FirstOrDefaultAsync(p => p.Id == paymentId, ct)
@@ -165,6 +172,124 @@ namespace ecommerce.Services.Payments
             }
 
             await _context.SaveChangesAsync(ct);
+        }
+
+        public async Task<RefundResult> RefundAsync(int paymentId, string reason, string? adminUserId, CancellationToken ct)
+        {
+            var payment = await _context.Payment.FirstOrDefaultAsync(p => p.Id == paymentId, ct)
+                ?? throw new InvalidOperationException("Payment not found.");
+
+            if (payment.Status != PaymentStatus.Succeeded)
+            {
+                throw new InvalidOperationException($"Only succeeded payments can be refunded (status={payment.Status}).");
+            }
+
+            var provider = _providers.FirstOrDefault(p => p.Method == payment.Method)
+                ?? throw new InvalidOperationException($"No provider registered for {payment.Method}.");
+
+            var providerResult = await provider.RefundAsync(payment, reason, ct);
+
+            await ApplyRefundDomainEffectsAsync(payment, providerResult.ProviderRefundReference, reason, adminUserId, ct);
+
+            await SendRefundEmailAsync(payment, providerResult.RequiresManualSettlement);
+
+            return providerResult;
+        }
+
+        public async Task MarkRefundedFromExternalAsync(int paymentId, string? providerRefundReference, string reason, CancellationToken ct)
+        {
+            var payment = await _context.Payment.FirstOrDefaultAsync(p => p.Id == paymentId, ct)
+                ?? throw new InvalidOperationException("Payment not found.");
+
+            if (payment.Status == PaymentStatus.Refunded)
+            {
+                return;
+            }
+            if (payment.Status != PaymentStatus.Succeeded)
+            {
+                throw new InvalidOperationException($"Cannot mark refunded; payment status is {payment.Status}.");
+            }
+
+            await ApplyRefundDomainEffectsAsync(payment, providerRefundReference, reason, adminUserId: null, ct);
+            await SendRefundEmailAsync(payment, requiresManualSettlement: false);
+        }
+
+        private async Task ApplyRefundDomainEffectsAsync(Payment payment, string? providerRefundReference, string reason, string? adminUserId, CancellationToken ct)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync(ct);
+
+            var order = await _context.Order
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == payment.OrderId, ct)
+                ?? throw new InvalidOperationException("Order not found.");
+
+            foreach (var item in order.OrderItems ?? new List<OrderItem>())
+            {
+                var product = _productService.Get(item.ProductId);
+                _context.Stock.Add(new Stock { ProductId = product.Id, Quantity = item.Quantity });
+                product.Quantity += item.Quantity;
+                _productService.Update(product);
+            }
+
+            if (payment.Method == PaymentMethod.InAppBalance)
+            {
+                var user = await _userManager.FindByIdAsync(order.ApplicationUserId);
+                if (user != null)
+                {
+                    user.Balance += payment.AmountUsd;
+                    await _userManager.UpdateAsync(user);
+
+                    _context.Statement.Add(new Statement
+                    {
+                        UserId = order.ApplicationUserId,
+                        Amount = payment.AmountUsd,
+                    });
+                }
+            }
+
+            order.Status = "REFUNDED";
+            _context.Order.Update(order);
+
+            payment.Status = PaymentStatus.Refunded;
+            payment.RefundedAt = DateTime.UtcNow;
+            payment.RefundedByUserId = adminUserId;
+            payment.RefundReason = reason;
+            payment.RefundProviderReference = providerRefundReference;
+            payment.UpdatedAt = DateTime.UtcNow;
+            _context.Payment.Update(payment);
+
+            await _context.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+
+        private async Task SendRefundEmailAsync(Payment payment, bool requiresManualSettlement)
+        {
+            try
+            {
+                var order = await _context.Order.FirstOrDefaultAsync(o => o.Id == payment.OrderId);
+                if (order == null) return;
+                var user = await _userManager.FindByIdAsync(order.ApplicationUserId);
+                if (user?.Email == null) return;
+
+                var sb = new StringBuilder();
+                sb.AppendLine("<h1>Refund processed</h1>");
+                sb.AppendLine($"<p>Order #{order.Id} has been refunded for {payment.AmountUsd:C}.</p>");
+                if (requiresManualSettlement)
+                {
+                    sb.AppendLine("<p>This crypto refund will be settled manually; expect the funds to arrive on-chain shortly.</p>");
+                }
+                if (!string.IsNullOrWhiteSpace(payment.RefundReason))
+                {
+                    sb.AppendLine($"<p>Reason: {payment.RefundReason}</p>");
+                }
+
+                var email = new EmailService(_configuration);
+                await email.SendEmailAsync(user.Email, "Refund processed", sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send refund email for payment {payment.Id}: {ex.Message}");
+            }
         }
 
         public async Task<bool> RecordExternalEventAsync(string source, string externalEventId, string? eventType, string? rawPayload, int? paymentId, CancellationToken ct)

@@ -11,8 +11,12 @@ namespace ecommerce.Services.Payments
         Task<Payment?> GetByProviderReferenceAsync(string providerRef, CancellationToken ct);
 
         Task<List<Payment>> ListAwaitingConfirmationAsync(PaymentMethod method, CancellationToken ct);
+        Task<List<Payment>> ListRecentSucceededAsync(int take, CancellationToken ct);
 
         Task AttachCryptoTxAsync(int paymentId, string txHash, CancellationToken ct);
+
+        Task<RefundResult> RefundAsync(int paymentId, string reason, string? adminUserId, CancellationToken ct);
+        Task MarkRefundedFromExternalAsync(int paymentId, string? providerRefundReference, string reason, CancellationToken ct);
 
         Task MarkSucceededAsync(int paymentId, string? confirmedByUserId, CancellationToken ct);
         Task MarkFailedAsync(int paymentId, string reason, CancellationToken ct);

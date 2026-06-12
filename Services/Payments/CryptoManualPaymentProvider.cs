@@ -59,5 +59,10 @@ namespace ecommerce.Services.Payments
                 FinalizedImmediately = false,
             };
         }
+
+        public Task<RefundResult> RefundAsync(Payment payment, string reason, CancellationToken ct)
+        {
+            return Task.FromResult(new RefundResult { RequiresManualSettlement = true });
+        }
     }
 }

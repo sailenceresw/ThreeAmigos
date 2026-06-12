@@ -37,5 +37,10 @@ namespace ecommerce.Services.Payments
                 FinalizedImmediately = true,
             };
         }
+
+        public Task<RefundResult> RefundAsync(Payment payment, string reason, CancellationToken ct)
+        {
+            return Task.FromResult(new RefundResult());
+        }
     }
 }
