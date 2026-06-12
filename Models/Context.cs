@@ -61,14 +61,29 @@ namespace ecommerce.Models
                 entity.Property(e => e.Status).HasConversion<int>();
                 entity.HasIndex(e => e.OrderId);
                 entity.HasIndex(e => e.ProviderReference);
+
+                entity.HasOne(p => p.Order)
+                    .WithMany()
+                    .HasForeignKey(p => p.OrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
             builder.Entity<PaymentEvent>(entity =>
             {
                 entity.HasIndex(e => new { e.Source, e.ExternalEventId }).IsUnique();
+
+                entity.HasOne(e => e.Payment)
+                    .WithMany()
+                    .HasForeignKey(e => e.PaymentId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
             builder.Entity<Order>(entity =>
             {
                 entity.Property(e => e.PaymentMethod).HasConversion<int?>();
+
+                entity.HasOne(o => o.Payment)
+                    .WithMany()
+                    .HasForeignKey(o => o.PaymentId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }
