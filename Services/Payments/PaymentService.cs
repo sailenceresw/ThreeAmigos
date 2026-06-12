@@ -1,6 +1,7 @@
 using System.Text;
 using ecommerce.Models;
 using ecommerce.Services;
+using ecommerce.Services.Stock;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,19 +14,22 @@ namespace ecommerce.Services.Payments
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IProductService _productService;
+        private readonly IStockReservationService _stockReservations;
 
         public PaymentService(
             Context context,
             IEnumerable<IPaymentProvider> providers,
             UserManager<ApplicationUser> userManager,
             IConfiguration configuration,
-            IProductService productService)
+            IProductService productService,
+            IStockReservationService stockReservations)
         {
             _context = context;
             _providers = providers;
             _userManager = userManager;
             _configuration = configuration;
             _productService = productService;
+            _stockReservations = stockReservations;
         }
 
         public async Task<PaymentInitResult> BeginAsync(int orderId, PaymentMethod method, ApplicationUser user, IDictionary<string, string?>? providerArgs, CancellationToken ct)
@@ -169,6 +173,7 @@ namespace ecommerce.Services.Payments
             {
                 order.Status = "PAYMENT_FAILED";
                 _context.Order.Update(order);
+                await _stockReservations.ReleaseForOrderAsync(order.Id, ct);
             }
 
             await _context.SaveChangesAsync(ct);
@@ -357,6 +362,8 @@ namespace ecommerce.Services.Payments
                     Amount = -order.TotalValue,
                 });
             }
+
+            await _stockReservations.ConsumeForOrderAsync(order.Id, ct);
         }
 
         private async Task SendOrderConfirmationEmailAsync(Order order)

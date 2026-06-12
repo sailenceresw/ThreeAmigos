@@ -1,6 +1,7 @@
 ﻿using Azure.Identity;
 using ecommerce.Models;
 using ecommerce.Services;
+using ecommerce.Services.Stock;
 using ecommerce.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +24,7 @@ namespace ecommerce.Controllers
 		private readonly ICategoryService categoryService;
 		private readonly Context _context;
 		private readonly IConfiguration _configuration;
+		private readonly IStockReservationService stockReservations;
 
 		public OrderController(IOrderService orderService,
 			UserManager<ApplicationUser> userManager,
@@ -33,7 +35,8 @@ namespace ecommerce.Controllers
 			IShipmentService shipmentService,
 			ICategoryService categoryService,
 			IConfiguration configuration,
-			Context context)
+			Context context,
+			IStockReservationService stockReservations)
 		{
 			this.orderService = orderService;
 			this.userManager = userManager;
@@ -45,6 +48,7 @@ namespace ecommerce.Controllers
 			this.categoryService = categoryService;
 			this._context = context;
 			this._configuration = configuration;
+			this.stockReservations = stockReservations;
 		}
 
 		//***********************************************
@@ -285,9 +289,10 @@ namespace ecommerce.Controllers
 				Product prod = productService.Get(item.ProductId);
 				totalPrice += item.Quantity * prod.Price;
 
-				if (prod.Quantity < item.Quantity)
+				var available = await stockReservations.GetAvailableQuantityAsync(prod.Id, HttpContext.RequestAborted);
+				if (available < item.Quantity)
 				{
-					return Json("Insufficient Quantity for " + prod.Name);
+					return Json($"Insufficient quantity for {prod.Name} (available: {available}, requested: {item.Quantity})");
 				}
 			}
 
@@ -311,6 +316,11 @@ namespace ecommerce.Controllers
 					Price = prod.Price,
 				});
 			}
+
+			await stockReservations.ReserveForOrderAsync(
+				o.Id,
+				orderDeserialized.OrderItems!.Select(i => (i.ProductId, i.Quantity)),
+				HttpContext.RequestAborted);
 
 			Shipment shipment = new Shipment
 			{

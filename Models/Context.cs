@@ -18,6 +18,7 @@ namespace ecommerce.Models
         public DbSet<ApplicationUser> Users { get; set; }
         public DbSet<Payment> Payment { get; set; }
         public DbSet<PaymentEvent> PaymentEvent { get; set; }
+        public DbSet<StockReservation> StockReservation { get; set; }
 
         public Context() : base() { }
 
@@ -86,6 +87,21 @@ namespace ecommerce.Models
                     .WithMany()
                     .HasForeignKey(o => o.PaymentId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+            builder.Entity<StockReservation>(entity =>
+            {
+                entity.HasIndex(e => e.OrderId);
+                entity.HasIndex(e => new { e.ProductId, e.ConsumedAt, e.ReleasedAt, e.ExpiresAt });
+
+                entity.HasOne(e => e.Order)
+                    .WithMany()
+                    .HasForeignKey(e => e.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Product)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

@@ -6,6 +6,7 @@ using ecommerce.Services;
 using ecommerce.Services.Payments;
 using ecommerce.Services.Payments.Pricing;
 using ecommerce.Services.Payments.Verification;
+using ecommerce.Services.Stock;
 using ecommerce.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -110,6 +111,12 @@ namespace ecommerce
             builder.Services.AddTransient<IChainVerifier>(sp => sp.GetRequiredService<EthereumChainVerifier>());
             builder.Services.AddScoped<IChainVerifierResolver, ChainVerifierResolver>();
             builder.Services.AddHostedService<CryptoVerificationHostedService>();
+
+            // Stock reservation
+            builder.Services.Configure<StockOptions>(
+                builder.Configuration.GetSection(StockOptions.SectionName));
+            builder.Services.AddScoped<IStockReservationService, StockReservationService>();
+            builder.Services.AddHostedService<StockReservationSweeperHostedService>();
             
             builder.Services.AddSession();
 

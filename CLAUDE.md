@@ -129,16 +129,28 @@ from the Stripe Dashboard reconcile through `MarkRefundedFromExternalAsync`
 ### Checkout / payment flow
 
 `OrderController.checkout` POST no longer debits balance or decrements stock
-inline. It now creates the `Order` in `Status="AWAITING_PAYMENT"`, snapshots
-`OrderItem` prices, creates the `Shipment`, and redirects to
-`Payment/Select?orderId=…`. The payment provider chosen there debits / charges
-through `IPaymentProvider.InitiateAsync`; finalization runs in
+inline. It validates **available** stock (Product.Quantity minus active
+`StockReservation` holds via `IStockReservationService.GetAvailableQuantityAsync`),
+creates the `Order` in `Status="AWAITING_PAYMENT"`, snapshots `OrderItem`
+prices, creates the `Shipment`, **reserves stock** (TTL from
+`Stock:ReservationTtlMinutes`), and redirects to `Payment/Select?orderId=…`.
+The payment provider chosen there debits / charges through
+`IPaymentProvider.InitiateAsync`; finalization runs in
 `PaymentService.MarkSucceededAsync` (called inline for in-app balance, via
-Stripe webhook for cards, via the admin confirm endpoint for crypto).
+Stripe webhook for cards, via the admin confirm endpoint or auto-verifier for
+crypto). `FinalizeOrderAsync` decrements `Product.Quantity` and consumes the
+reservations; `MarkFailedAsync` releases them.
 
-Known limitation: stock is **not reserved** between `AWAITING_PAYMENT` order
-creation and payment-success finalization. Concurrent checkouts of the
-last-in-stock item can oversell. Add reservation if this matters.
+### Stock reservation
+
+`StockReservation` rows hold stock between `AWAITING_PAYMENT` order creation
+and payment-success finalization, closing the oversell race. Available
+quantity = `Product.Quantity − Σ(active reservations)` where "active" means
+`ConsumedAt IS NULL AND ReleasedAt IS NULL AND ExpiresAt > now`.
+`StockReservationSweeperHostedService` runs every `Stock:SweepIntervalMinutes`
+to release expired reservations (cart abandonment / closed-tab scenarios). A
+reservation never alters `Product.Quantity` — the literal stock decrement
+happens only in `FinalizeOrderAsync`.
 
 ### Dependency injection
 
@@ -184,19 +196,18 @@ without reason. Email confirmation (`RequireConfirmedAccount`) is commented out.
   In Azure / production, set the same keys as App Service configuration. The
   Stripe webhook lives at `POST /Payment/StripeWebhook` and is
   `[AllowAnonymous]` + signature-verified.
-- **The `Payment` + `PaymentEvent` tables require an EF migration.** `Payment`
-  also carries refund-tracking columns (`RefundedAt`, `RefundedByUserId`,
-  `RefundReason`, `RefundProviderReference`). After pulling:
+- **EF migration covers Payment, PaymentEvent, StockReservation, plus refund
+  and crypto-verification columns on Payment.** After pulling:
 
   ```bash
   dotnet tool restore
-  dotnet dotnet-ef migrations add AddPayments
+  dotnet dotnet-ef migrations add AddPaymentsAndStock
   dotnet dotnet-ef database update
   ```
 
-  If you've already generated/applied `AddPayments` before the refund columns
-  were added, run a second migration: `dotnet dotnet-ef migrations add
-  AddPaymentRefunds && dotnet dotnet-ef database update`.
+  If you generated/applied `AddPayments` before the refund / verification /
+  reservation work landed, add follow-up migrations instead — EF will detect
+  each additive change and emit a delta-only migration.
 
 ## Deployment
 
