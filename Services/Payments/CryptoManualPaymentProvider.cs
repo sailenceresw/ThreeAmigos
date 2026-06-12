@@ -1,4 +1,5 @@
 using ecommerce.Models;
+using ecommerce.Services.Payments.Pricing;
 using ecommerce.Settings;
 using Microsoft.Extensions.Options;
 
@@ -8,11 +9,13 @@ namespace ecommerce.Services.Payments
     {
         private readonly Context _context;
         private readonly CryptoOptions _options;
+        private readonly IPriceOracle _priceOracle;
 
-        public CryptoManualPaymentProvider(Context context, IOptions<PaymentOptions> options)
+        public CryptoManualPaymentProvider(Context context, IOptions<PaymentOptions> options, IPriceOracle priceOracle)
         {
             _context = context;
             _options = options.Value.Crypto;
+            _priceOracle = priceOracle;
         }
 
         public PaymentMethod Method => PaymentMethod.CryptoManual;
@@ -36,6 +39,13 @@ namespace ecommerce.Services.Payments
                 throw new InvalidOperationException($"Configured wallet for {wallet.Currency} has no address.");
             }
 
+            decimal? expectedCryptoAmount = null;
+            var unitPriceUsd = await _priceOracle.GetUsdPriceAsync(wallet.Currency, ct);
+            if (unitPriceUsd.HasValue && unitPriceUsd.Value > 0)
+            {
+                expectedCryptoAmount = Math.Round(amountUsd / unitPriceUsd.Value, 8, MidpointRounding.AwayFromZero);
+            }
+
             var payment = new Payment
             {
                 OrderId = order.Id,
@@ -45,6 +55,7 @@ namespace ecommerce.Services.Payments
                 CryptoCurrency = wallet.Currency,
                 CryptoNetwork = wallet.Network,
                 CryptoWalletAddress = wallet.Address,
+                CryptoExpectedAmount = expectedCryptoAmount,
                 ProviderReference = $"crypto:{wallet.Currency}:{order.Id}:{DateTime.UtcNow:yyyyMMddHHmmss}",
             };
             _context.Payment.Add(payment);
@@ -56,6 +67,7 @@ namespace ecommerce.Services.Payments
                 CryptoCurrency = wallet.Currency,
                 CryptoNetwork = wallet.Network,
                 CryptoWalletAddress = wallet.Address,
+                CryptoExpectedAmount = expectedCryptoAmount,
                 FinalizedImmediately = false,
             };
         }

@@ -4,6 +4,8 @@ using ecommerce.Repository;
 using ecommerce.Seeders;
 using ecommerce.Services;
 using ecommerce.Services.Payments;
+using ecommerce.Services.Payments.Pricing;
+using ecommerce.Services.Payments.Verification;
 using ecommerce.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -99,6 +101,15 @@ namespace ecommerce
             builder.Services.AddScoped<IPaymentProvider, StripePaymentProvider>();
             builder.Services.AddScoped<IPaymentProvider, CryptoManualPaymentProvider>();
             builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+            // Crypto pricing + on-chain verification
+            builder.Services.AddHttpClient<IPriceOracle, CoinGeckoPriceOracle>();
+            builder.Services.AddHttpClient<BitcoinChainVerifier>();
+            builder.Services.AddHttpClient<EthereumChainVerifier>();
+            builder.Services.AddTransient<IChainVerifier>(sp => sp.GetRequiredService<BitcoinChainVerifier>());
+            builder.Services.AddTransient<IChainVerifier>(sp => sp.GetRequiredService<EthereumChainVerifier>());
+            builder.Services.AddScoped<IChainVerifierResolver, ChainVerifierResolver>();
+            builder.Services.AddHostedService<CryptoVerificationHostedService>();
             
             builder.Services.AddSession();
 

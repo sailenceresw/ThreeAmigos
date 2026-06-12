@@ -57,6 +57,8 @@ namespace ecommerce.Models
             builder.Entity<Payment>(entity =>
             {
                 entity.Property(e => e.AmountUsd).HasPrecision(18, 2);
+                entity.Property(e => e.CryptoExpectedAmount).HasPrecision(28, 12);
+                entity.Property(e => e.CryptoReceivedAmount).HasPrecision(28, 12);
                 entity.Property(e => e.Method).HasConversion<int>();
                 entity.Property(e => e.Status).HasConversion<int>();
                 entity.HasIndex(e => e.OrderId);

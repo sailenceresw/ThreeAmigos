@@ -12,6 +12,7 @@ namespace ecommerce.Services.Payments
         public string? CryptoWalletAddress { get; set; }
         public string? CryptoCurrency { get; set; }
         public string? CryptoNetwork { get; set; }
+        public decimal? CryptoExpectedAmount { get; set; }
 
         public bool FinalizedImmediately { get; set; }
     }

@@ -33,6 +33,7 @@ namespace ecommerce.ViewModels.Payment
         public string Currency { get; set; } = "";
         public string Network { get; set; } = "";
         public string WalletAddress { get; set; } = "";
+        public decimal? ExpectedAmount { get; set; }
 
         [Required, MinLength(8), MaxLength(256)]
         public string? TxHash { get; set; }

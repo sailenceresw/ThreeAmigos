@@ -19,10 +19,12 @@
                     <th>Payment</th>
                     <th>Order</th>
                     <th>Amount (USD)</th>
-                    <th>Currency</th>
-                    <th>Network</th>
+                    <th>Currency / Network</th>
+                    <th>Expected</th>
+                    <th>Received</th>
+                    <th>Conf.</th>
+                    <th>Last verified</th>
                     <th>Tx hash</th>
-                    <th>Submitted</th>
                     <th></th>
                 </tr>
             </thead>
@@ -33,10 +35,12 @@
                         <td>#@p.Id</td>
                         <td>#@p.OrderId</td>
                         <td>$@p.AmountUsd</td>
-                        <td>@p.CryptoCurrency</td>
-                        <td>@p.CryptoNetwork</td>
+                        <td>@p.CryptoCurrency / @p.CryptoNetwork</td>
+                        <td>@(p.CryptoExpectedAmount?.ToString("0.########") ?? "—")</td>
+                        <td>@(p.CryptoReceivedAmount?.ToString("0.########") ?? "—")</td>
+                        <td>@(p.CryptoConfirmations?.ToString() ?? "—")</td>
+                        <td>@(p.LastVerifiedAt?.ToString("u") ?? "—")</td>
                         <td><code>@p.CryptoTxHash</code></td>
-                        <td>@(p.UpdatedAt ?? p.CreatedAt)</td>
                         <td>
                             <form asp-action="AdminConfirmCrypto" method="post" class="d-inline">
                                 <input type="hidden" name="paymentId" value="@p.Id" />

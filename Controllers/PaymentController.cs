@@ -105,6 +105,7 @@ namespace ecommerce.Controllers
                     Currency = result.CryptoCurrency ?? "",
                     Network = result.CryptoNetwork ?? "",
                     WalletAddress = result.CryptoWalletAddress ?? "",
+                    ExpectedAmount = result.CryptoExpectedAmount,
                 }),
                 _ => BadRequest(),
             };

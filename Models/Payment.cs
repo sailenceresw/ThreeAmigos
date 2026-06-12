@@ -24,6 +24,11 @@ namespace ecommerce.Models
         public string? CryptoNetwork { get; set; }
         public string? CryptoWalletAddress { get; set; }
         public string? CryptoTxHash { get; set; }
+        public decimal? CryptoExpectedAmount { get; set; }
+        public decimal? CryptoReceivedAmount { get; set; }
+        public int? CryptoConfirmations { get; set; }
+        public DateTime? LastVerifiedAt { get; set; }
+        public int VerificationAttempts { get; set; } = 0;
 
         public string? FailureReason { get; set; }
 

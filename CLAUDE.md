@@ -86,6 +86,33 @@ Controller  ->  I<Entity>Service / <Entity>Service  ->  I<Entity>Repository / <E
   Refund action that calls Stripe's Refunds API (or credits back the in-app
   balance, or records intent for manual crypto refunds).
 
+### Crypto on-chain verification
+
+When a user picks crypto at checkout, `CryptoManualPaymentProvider` locks the
+USD→crypto rate via `IPriceOracle` (`CoinGeckoPriceOracle`, free tier, no key)
+and stores `Payment.CryptoExpectedAmount` so the Crypto checkout view shows the
+user an exact amount to send. After the user submits a tx hash,
+`CryptoVerificationHostedService` (a `BackgroundService` registered in
+`Program.cs`) polls every `Payments:Crypto:Verification:PollIntervalMinutes`
+minutes:
+
+- `BitcoinChainVerifier` calls mempool.space (`/api/tx/{hash}` and tip height)
+  to verify recipient + sum of outputs + confirmations. No API key required.
+- `EthereumChainVerifier` calls Etherscan (`eth_getTransactionByHash`,
+  `eth_getTransactionReceipt`, `eth_blockNumber`) — **requires** an API key in
+  `Payments:Crypto:Verification:EtherscanApiKey`. Native ETH only; ERC-20
+  tokens are not parsed.
+- `IChainVerifierResolver` picks the verifier by `Payment.CryptoCurrency`.
+- Outcomes: `Confirmed` → `MarkSucceededAsync`; `Rejected` (wrong recipient,
+  amount drift beyond tolerance, on-chain revert) → `MarkFailedAsync`;
+  `Pending` / `TxNotFound` / `Unknown` → leave status alone and record
+  `CryptoReceivedAmount`, `CryptoConfirmations`, `LastVerifiedAt`,
+  `VerificationAttempts` so the admin review page sees the latest state.
+
+Auto-verification is off by default (`AutoVerifyEnabled: false`) and the admin
+Confirm/Reject controls remain available as a manual fallback for unsupported
+chains or stuck verifications.
+
 ### Refunds
 
 `PaymentService.RefundAsync(paymentId, reason, adminUserId)` only operates on
